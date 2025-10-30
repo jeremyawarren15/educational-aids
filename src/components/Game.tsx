@@ -24,6 +24,8 @@ export default function Game({
     () => Array.from({ length: totalProblems }, () => 'pending'),
   )
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const [hadMistake, setHadMistake] = useState(false)
+  const [isShaking, setIsShaking] = useState(false)
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -36,21 +38,32 @@ export default function Game({
     if (trimmed.length === 0) return
     const given = Number(trimmed)
     const isCorrect = Number.isFinite(given) && given === current.expected
-    setResults((prev) => {
-      const next = prev.slice()
-      next[index] = isCorrect ? 'correct' : 'wrong'
-      return next
-    })
-    setTimeout(() => {
-      if (index + 1 < problems.length) {
-        setIndex((i) => i + 1)
-        setInput('')
-      } else {
-        onDone(
-          results.map((r, i) => (i === index ? (isCorrect ? 'correct' : 'wrong') : r)),
-        )
-      }
-    }, 400)
+    if (!isCorrect) {
+      setHadMistake(true)
+      setResults((prev) => {
+        const next = prev.slice()
+        next[index] = 'wrong'
+        return next
+      })
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 350)
+      setInput('')
+      inputRef.current?.focus()
+      return
+    }
+
+    // Correct answer: record final outcome for this problem
+    const nextResults = results.slice()
+    nextResults[index] = hadMistake ? 'wrong' : 'correct'
+    setResults(nextResults)
+
+    if (index + 1 < problems.length) {
+      setIndex(index + 1)
+      setInput('')
+      setHadMistake(false)
+    } else {
+      onDone(nextResults)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -86,7 +99,11 @@ export default function Game({
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          className="w-64 text-center text-5xl rounded-3xl border border-sky-200 bg-white px-5 py-4 shadow focus:outline-none focus:ring-4 focus:ring-sky-200"
+          className={`w-64 text-center text-5xl rounded-3xl border bg-white px-5 py-4 shadow focus:outline-none ${
+            isShaking
+              ? 'border-red-400 ring-4 ring-red-200 animate-ea-shake'
+              : 'border-sky-200 focus:ring-4 focus:ring-sky-200'
+          }`}
           value={input}
           onChange={(e) => setInput(e.target.value.replace(/[^0-9-]/g, ''))}
           onKeyDown={handleKeyDown}
