@@ -1,23 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { generateProblems, type Problem } from '../lib/problems'
+import { type Problem } from '../lib/problems'
 import ProgressBar from './ProgressBar'
 
 export type Result = 'pending' | 'correct' | 'wrong'
 
-export default function Game({
-  target,
-  totalProblems,
-  onDone,
-}: {
+export type BaseGameProps = {
+  problems: Problem[]
   target: number
   totalProblems: number
+  renderProblem: (problem: Problem, target: number) => React.ReactNode
   onDone: (results: Result[]) => void
-}) {
-  const problems = useMemo<Problem[]>(
-    () => generateProblems(target, totalProblems),
-    [target, totalProblems],
-  )
+}
 
+export default function BaseGame({
+  problems,
+  target,
+  totalProblems,
+  renderProblem,
+  onDone,
+}: BaseGameProps) {
   const [index, setIndex] = useState(0)
   const [input, setInput] = useState('')
   const [results, setResults] = useState<Result[]>(
@@ -53,8 +54,9 @@ export default function Game({
     }
 
     // Correct answer: record final outcome for this problem
+    // Always mark as correct if they eventually get it right
     const nextResults = results.slice()
-    nextResults[index] = hadMistake ? 'wrong' : 'correct'
+    nextResults[index] = 'correct'
     setResults(nextResults)
 
     if (index + 1 < problems.length) {
@@ -85,11 +87,7 @@ export default function Game({
       <div className="text-center bg-sky-50 rounded-3xl border border-sky-100 p-8">
         <div className="text-lg text-sky-700">Type your answer and press Enter</div>
         <div className="mt-3 font-extrabold text-6xl md:text-7xl tracking-tight">
-          <span>{current.a}</span>
-          <span className="text-sky-600"> + </span>
-          <span className="text-sky-400">_</span>
-          <span className="text-sky-600"> = </span>
-          <span>{target}</span>
+          {renderProblem(current, target)}
         </div>
       </div>
 
@@ -115,5 +113,4 @@ export default function Game({
     </div>
   )
 }
-
 

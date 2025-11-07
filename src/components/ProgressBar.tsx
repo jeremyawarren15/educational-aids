@@ -1,4 +1,4 @@
-import type { Result } from './Game'
+import type { Result } from './BaseGame'
 
 export default function ProgressBar({
   results,

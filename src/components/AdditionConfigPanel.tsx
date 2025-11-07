@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 
-export type ConfigValues = {
+export type AdditionConfigValues = {
   target: number
   totalProblems: number
 }
 
-export default function ConfigPanel({
+export default function AdditionConfigPanel({
   initial,
   onStart,
 }: {
-  initial?: Partial<ConfigValues>
-  onStart: (config: ConfigValues) => void
+  initial?: Partial<AdditionConfigValues>
+  onStart: (config: AdditionConfigValues) => void
 }) {
   const [target, setTarget] = useState<number>(initial?.target ?? 10)
   const [totalProblems, setTotalProblems] = useState<number>(
@@ -79,5 +79,4 @@ export default function ConfigPanel({
     </form>
   )
 }
-
 
