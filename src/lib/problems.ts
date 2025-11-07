@@ -18,19 +18,19 @@ export function generateAdditionProblems(target: number, count: number): Problem
 }
 
 export function generateMultiplicationProblems(target: number, maxRange: number, count: number): Problem[] {
-  // Generate problems from 0 to maxRange: target x 0, target x 1, ..., target x maxRange
-  const allProblems: Problem[] = Array.from({ length: maxRange + 1 }, (_, i) => {
-    return { a: i, expected: target * i }
+  // Generate exactly count problems, randomly selecting values from 0 to maxRange
+  const arr: Problem[] = Array.from({ length: count }, () => {
+    const a = Math.floor(Math.random() * (maxRange + 1))
+    return { a, expected: target * a }
   })
   // Shuffle the array
-  for (let i = allProblems.length - 1; i > 0; i--) {
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    const tmp = allProblems[i]
-    allProblems[i] = allProblems[j]
-    allProblems[j] = tmp
+    const tmp = arr[i]
+    arr[i] = arr[j]
+    arr[j] = tmp
   }
-  // Return only the requested count
-  return allProblems.slice(0, count)
+  return arr
 }
 
 
