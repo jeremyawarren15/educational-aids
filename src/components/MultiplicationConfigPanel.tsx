@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 export type MultiplicationConfigValues = {
   target: number
   maxRange: number
+  totalProblems: number
 }
 
 export default function MultiplicationConfigPanel({
@@ -17,10 +18,14 @@ export default function MultiplicationConfigPanel({
   const [maxRange, setMaxRange] = useState<number>(
     initial?.maxRange ?? 12,
   )
+  const [totalProblems, setTotalProblems] = useState<number>(
+    initial?.totalProblems ?? 10,
+  )
 
   useEffect(() => {
     setTarget((t) => sanitizeTarget(t))
     setMaxRange((r) => sanitizeRange(r))
+    setTotalProblems((n) => sanitizeCount(n))
   }, [])
 
   function sanitizeTarget(value: number): number {
@@ -33,9 +38,18 @@ export default function MultiplicationConfigPanel({
     return Math.max(0, Math.round(value))
   }
 
+  function sanitizeCount(value: number): number {
+    if (!Number.isFinite(value)) return 10
+    return Math.min(50, Math.max(1, Math.round(value)))
+  }
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    onStart({ target: sanitizeTarget(target), maxRange: sanitizeRange(maxRange) })
+    onStart({ 
+      target: sanitizeTarget(target), 
+      maxRange: sanitizeRange(maxRange),
+      totalProblems: sanitizeCount(totalProblems)
+    })
   }
 
   return (
@@ -68,6 +82,21 @@ export default function MultiplicationConfigPanel({
           onChange={(e) => setMaxRange(Number(e.target.value))}
         />
         <p className="text-sm text-sky-700">Problems will be generated from <span className="font-semibold">{target || 'N'} × 0</span> to <span className="font-semibold">{target || 'N'} × {maxRange || 'N'}</span>.</p>
+      </div>
+
+      <div className="grid gap-2">
+        <label className="text-sky-900 font-semibold text-lg" htmlFor="count">Number of problems</label>
+        <input
+          id="count"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={50}
+          placeholder="10"
+          className="w-full rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-3xl focus:outline-none focus:ring-4 focus:ring-emerald-200"
+          value={totalProblems}
+          onChange={(e) => setTotalProblems(Number(e.target.value))}
+        />
       </div>
 
       <button

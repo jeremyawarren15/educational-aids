@@ -116,6 +116,8 @@ export default function AdditionPage() {
                   setResults(r)
                   setMode('done')
                 }}
+                onHome={() => navigate('/')}
+                onSettings={() => setMode('config')}
               />
             )}
             {mode === 'done' && results && (

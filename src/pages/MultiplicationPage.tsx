@@ -10,10 +10,12 @@ function getConfigFromURL(): Partial<MultiplicationConfigValues> {
   const params = new URLSearchParams(window.location.search)
   const target = params.get('target')
   const maxRange = params.get('maxRange')
+  const totalProblems = params.get('totalProblems')
   
   return {
     target: target ? Number(target) : undefined,
     maxRange: maxRange ? Number(maxRange) : undefined,
+    totalProblems: totalProblems ? Number(totalProblems) : undefined,
   }
 }
 
@@ -21,6 +23,7 @@ function updateURL(config: MultiplicationConfigValues) {
   const params = new URLSearchParams()
   params.set('target', String(config.target))
   params.set('maxRange', String(config.maxRange))
+  params.set('totalProblems', String(config.totalProblems))
   const newURL = `${window.location.pathname}?${params.toString()}`
   window.history.pushState({}, '', newURL)
 }
@@ -37,12 +40,13 @@ export default function MultiplicationPage() {
     const urlConfig = getConfigFromURL()
     setInitialConfig(urlConfig)
     
-    // If both params are present and valid, auto-start the game
-    if (urlConfig.target !== undefined && urlConfig.maxRange !== undefined) {
+    // If all params are present and valid, auto-start the game
+    if (urlConfig.target !== undefined && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
       const target = Math.max(1, Math.round(urlConfig.target))
       const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
-      if (target > 0 && maxRange >= 0) {
-        const validConfig = { target, maxRange }
+      const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+      if (target > 0 && maxRange >= 0 && totalProblems > 0) {
+        const validConfig = { target, maxRange, totalProblems }
         setConfig(validConfig)
         setMode('play')
         setResults(null)
@@ -54,11 +58,12 @@ export default function MultiplicationPage() {
       const urlConfig = getConfigFromURL()
       setInitialConfig(urlConfig)
       
-      if (urlConfig.target !== undefined && urlConfig.maxRange !== undefined) {
+      if (urlConfig.target !== undefined && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
         const target = Math.max(1, Math.round(urlConfig.target))
         const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
-        if (target > 0 && maxRange >= 0) {
-          const validConfig = { target, maxRange }
+        const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+        if (target > 0 && maxRange >= 0 && totalProblems > 0) {
+          const validConfig = { target, maxRange, totalProblems }
           setConfig(validConfig)
           setMode('play')
           setResults(null)
@@ -100,9 +105,9 @@ export default function MultiplicationPage() {
                   ← Back
                 </button>
                 <MultiplicationConfigPanel 
-                  initial={initialConfig.target !== undefined && initialConfig.maxRange !== undefined
-                    ? { target: initialConfig.target, maxRange: initialConfig.maxRange }
-                    : { target: 4, maxRange: 12 }
+                  initial={initialConfig.target !== undefined && initialConfig.maxRange !== undefined && initialConfig.totalProblems !== undefined
+                    ? { target: initialConfig.target, maxRange: initialConfig.maxRange, totalProblems: initialConfig.totalProblems }
+                    : { target: 4, maxRange: 12, totalProblems: 10 }
                   } 
                   onStart={handleStart} 
                 />
@@ -112,10 +117,13 @@ export default function MultiplicationPage() {
               <MultiplicationGame
                 target={config.target}
                 maxRange={config.maxRange}
+                totalProblems={config.totalProblems}
                 onDone={(r) => {
                   setResults(r)
                   setMode('done')
                 }}
+                onHome={() => navigate('/')}
+                onSettings={() => setMode('config')}
               />
             )}
             {mode === 'done' && results && (

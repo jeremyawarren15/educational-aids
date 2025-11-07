@@ -5,18 +5,22 @@ import BaseGame, { type Result } from './BaseGame'
 export default function MultiplicationGame({
   target,
   maxRange,
+  totalProblems,
   onDone,
+  onHome,
+  onSettings,
 }: {
   target: number
   maxRange: number
+  totalProblems: number
   onDone: (results: Result[]) => void
+  onHome?: () => void
+  onSettings?: () => void
 }) {
   const problems = useMemo<Problem[]>(
-    () => generateMultiplicationProblems(target, maxRange),
-    [target, maxRange],
+    () => generateMultiplicationProblems(target, maxRange, totalProblems),
+    [target, maxRange, totalProblems],
   )
-
-  const totalProblems = problems.length
 
   function renderProblem(problem: Problem, target: number) {
     return (
@@ -37,6 +41,8 @@ export default function MultiplicationGame({
       totalProblems={totalProblems}
       renderProblem={renderProblem}
       onDone={onDone}
+      onHome={onHome}
+      onSettings={onSettings}
     />
   )
 }

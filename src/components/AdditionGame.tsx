@@ -6,10 +6,14 @@ export default function AdditionGame({
   target,
   totalProblems,
   onDone,
+  onHome,
+  onSettings,
 }: {
   target: number
   totalProblems: number
   onDone: (results: Result[]) => void
+  onHome?: () => void
+  onSettings?: () => void
 }) {
   const problems = useMemo<Problem[]>(
     () => generateAdditionProblems(target, totalProblems),
@@ -35,6 +39,8 @@ export default function AdditionGame({
       totalProblems={totalProblems}
       renderProblem={renderProblem}
       onDone={onDone}
+      onHome={onHome}
+      onSettings={onSettings}
     />
   )
 }
