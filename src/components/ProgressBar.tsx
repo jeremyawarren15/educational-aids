@@ -17,7 +17,7 @@ export default function ProgressBar({
             (i < activeIndex
               ? r === 'correct'
                 ? 'bg-green-500'
-                : 'bg-rose-500'
+                : 'bg-gray-300'
               : i === activeIndex
               ? 'bg-sky-400 animate-pulse'
               : 'bg-gray-300')

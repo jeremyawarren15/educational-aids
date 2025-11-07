@@ -41,23 +41,10 @@ function App() {
             {mode === 'done' && results && (
               <div className="grid gap-6 text-center">
                 <div className="text-2xl md:text-3xl font-extrabold text-sky-800">Great job!</div>
-                <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center justify-center">
                   <div className="rounded-2xl bg-green-50 border border-green-200 text-green-700 px-6 py-4 text-xl font-bold">
                     Correct: {results.filter((r) => r === 'correct').length}
                   </div>
-                  <div className="rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 px-6 py-4 text-xl font-bold">
-                    Wrong: {results.filter((r) => r === 'wrong').length}
-                  </div>
-                </div>
-                <div className="flex justify-center gap-2">
-                  {results.map((r, i) => (
-                    <span
-                      key={i}
-                      className={
-                        'h-3 w-3 rounded-full ' + (r === 'correct' ? 'bg-green-500' : 'bg-rose-500')
-                      }
-                    />
-                  ))}
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
