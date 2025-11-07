@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { type Problem } from '../lib/problems'
 import ProgressBar from './ProgressBar'
 
@@ -25,7 +25,6 @@ export default function BaseGame({
     () => Array.from({ length: totalProblems }, () => 'pending'),
   )
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const [hadMistake, setHadMistake] = useState(false)
   const [isShaking, setIsShaking] = useState(false)
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export default function BaseGame({
     const given = Number(trimmed)
     const isCorrect = Number.isFinite(given) && given === current.expected
     if (!isCorrect) {
-      setHadMistake(true)
       setResults((prev) => {
         const next = prev.slice()
         next[index] = 'wrong'
@@ -62,7 +60,6 @@ export default function BaseGame({
     if (index + 1 < problems.length) {
       setIndex(index + 1)
       setInput('')
-      setHadMistake(false)
     } else {
       onDone(nextResults)
     }
