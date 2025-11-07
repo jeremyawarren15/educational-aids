@@ -1,18 +1,81 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ConfigPanel, { type ConfigValues } from './components/ConfigPanel'
 import Game, { type Result } from './components/Game'
 
 type Mode = 'config' | 'play' | 'done'
 
+function getConfigFromURL(): Partial<ConfigValues> {
+  const params = new URLSearchParams(window.location.search)
+  const target = params.get('target')
+  const totalProblems = params.get('totalProblems')
+  
+  return {
+    target: target ? Number(target) : undefined,
+    totalProblems: totalProblems ? Number(totalProblems) : undefined,
+  }
+}
+
+function updateURL(config: ConfigValues) {
+  const params = new URLSearchParams()
+  params.set('target', String(config.target))
+  params.set('totalProblems', String(config.totalProblems))
+  const newURL = `${window.location.pathname}?${params.toString()}`
+  window.history.pushState({}, '', newURL)
+}
+
 function App() {
   const [mode, setMode] = useState<Mode>('config')
   const [config, setConfig] = useState<ConfigValues | null>(null)
   const [results, setResults] = useState<Result[] | null>(null)
+  const [initialConfig, setInitialConfig] = useState<Partial<ConfigValues>>(() => getConfigFromURL())
+
+  useEffect(() => {
+    // Read URL params on mount
+    const urlConfig = getConfigFromURL()
+    setInitialConfig(urlConfig)
+    
+    // If both params are present and valid, auto-start the game
+    if (urlConfig.target && urlConfig.totalProblems) {
+      const target = Math.max(1, Math.round(urlConfig.target))
+      const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+      if (target > 0 && totalProblems > 0) {
+        const validConfig = { target, totalProblems }
+        setConfig(validConfig)
+        setMode('play')
+        setResults(null)
+      }
+    }
+
+    // Handle browser back/forward navigation
+    function handlePopState() {
+      const urlConfig = getConfigFromURL()
+      setInitialConfig(urlConfig)
+      
+      if (urlConfig.target && urlConfig.totalProblems) {
+        const target = Math.max(1, Math.round(urlConfig.target))
+        const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+        if (target > 0 && totalProblems > 0) {
+          const validConfig = { target, totalProblems }
+          setConfig(validConfig)
+          setMode('play')
+          setResults(null)
+        } else {
+          setMode('config')
+        }
+      } else {
+        setMode('config')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   function handleStart(c: ConfigValues) {
     setConfig(c)
     setMode('play')
     setResults(null)
+    updateURL(c)
   }
 
   return (
@@ -26,7 +89,13 @@ function App() {
         <main>
           <div className="bg-white/90 backdrop-blur shadow-2xl rounded-3xl p-6 md:p-10 border border-sky-100">
             {mode === 'config' && (
-              <ConfigPanel initial={{ target: 10, totalProblems: 10 }} onStart={handleStart} />
+              <ConfigPanel 
+                initial={initialConfig.target && initialConfig.totalProblems 
+                  ? { target: initialConfig.target, totalProblems: initialConfig.totalProblems }
+                  : { target: 10, totalProblems: 10 }
+                } 
+                onStart={handleStart} 
+              />
             )}
             {mode === 'play' && config && (
               <Game
@@ -49,7 +118,12 @@ function App() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
                     className="inline-flex items-center justify-center rounded-3xl bg-emerald-600 px-8 py-4 text-2xl font-extrabold text-white shadow-lg transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300"
-                    onClick={() => setMode('play')}
+                    onClick={() => {
+                      if (config) {
+                        updateURL(config)
+                      }
+                      setMode('play')
+                    }}
                   >
                     Play again
                   </button>
