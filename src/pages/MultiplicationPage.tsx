@@ -60,7 +60,7 @@ export default function MultiplicationPage() {
     // If all params are present and valid, auto-start the game
     if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
       const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
-      const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+      const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
       if (maxRange >= 0 && totalProblems > 0) {
         const validConfig = { targets: urlConfig.targets, maxRange, totalProblems }
         setConfig(validConfig)
@@ -76,7 +76,7 @@ export default function MultiplicationPage() {
       
       if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
         const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
-        const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+        const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
         if (maxRange >= 0 && totalProblems > 0) {
           const validConfig = { targets: urlConfig.targets, maxRange, totalProblems }
           setConfig(validConfig)

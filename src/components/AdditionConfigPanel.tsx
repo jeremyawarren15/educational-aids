@@ -30,8 +30,8 @@ export default function AdditionConfigPanel({
   const [targetInput, setTargetInput] = useState<string>(
     initial?.targets ? formatTargets(initial.targets) : '10'
   )
-  const [totalProblems, setTotalProblems] = useState<number>(
-    initial?.totalProblems ?? 10,
+  const [totalProblemsInput, setTotalProblemsInput] = useState<string>(
+    initial?.totalProblems ? String(initial.totalProblems) : '10',
   )
 
   useEffect(() => {
@@ -39,12 +39,12 @@ export default function AdditionConfigPanel({
     if (targets.length === 0) {
       setTargetInput('10')
     }
-    setTotalProblems((n) => sanitizeCount(n))
   }, [])
 
-  function sanitizeCount(value: number): number {
-    if (!Number.isFinite(value)) return 10
-    return Math.min(50, Math.max(1, Math.round(value)))
+  function sanitizeCount(value: string): number {
+    const num = Number(value)
+    if (!Number.isFinite(num) || num < 1) return 10
+    return Math.round(num)
   }
 
   function handleSubmit(e: FormEvent) {
@@ -52,10 +52,10 @@ export default function AdditionConfigPanel({
     const targets = parseTargets(targetInput)
     if (targets.length === 0) {
       // Default to [10] if no valid targets
-      onStart({ targets: [10], totalProblems: sanitizeCount(totalProblems) })
+      onStart({ targets: [10], totalProblems: sanitizeCount(totalProblemsInput) })
       return
     }
-    onStart({ targets, totalProblems: sanitizeCount(totalProblems) })
+    onStart({ targets, totalProblems: sanitizeCount(totalProblemsInput) })
   }
 
   return (
@@ -83,14 +83,12 @@ export default function AdditionConfigPanel({
         <label className="text-sky-900 font-semibold text-lg" htmlFor="count">Number of problems</label>
         <input
           id="count"
-          type="number"
+          type="text"
           inputMode="numeric"
-          min={1}
-          max={50}
           placeholder="10"
           className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-3xl focus:outline-none focus:ring-4 focus:ring-emerald-200"
-          value={totalProblems}
-          onChange={(e) => setTotalProblems(Number(e.target.value))}
+          value={totalProblemsInput}
+          onChange={(e) => setTotalProblemsInput(e.target.value.replace(/[^0-9]/g, ''))}
         />
       </div>
 

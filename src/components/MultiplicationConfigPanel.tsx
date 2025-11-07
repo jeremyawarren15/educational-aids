@@ -34,8 +34,8 @@ export default function MultiplicationConfigPanel({
   const [maxRange, setMaxRange] = useState<number>(
     initial?.maxRange ?? 12,
   )
-  const [totalProblems, setTotalProblems] = useState<number>(
-    initial?.totalProblems ?? 10,
+  const [totalProblemsInput, setTotalProblemsInput] = useState<string>(
+    initial?.totalProblems ? String(initial.totalProblems) : '10',
   )
 
   useEffect(() => {
@@ -44,7 +44,6 @@ export default function MultiplicationConfigPanel({
       setTargetInput('4')
     }
     setMaxRange((r) => sanitizeRange(r))
-    setTotalProblems((n) => sanitizeCount(n))
   }, [])
 
   function sanitizeRange(value: number): number {
@@ -52,9 +51,10 @@ export default function MultiplicationConfigPanel({
     return Math.max(0, Math.round(value))
   }
 
-  function sanitizeCount(value: number): number {
-    if (!Number.isFinite(value)) return 10
-    return Math.min(50, Math.max(1, Math.round(value)))
+  function sanitizeCount(value: string): number {
+    const num = Number(value)
+    if (!Number.isFinite(num) || num < 1) return 10
+    return Math.round(num)
   }
 
   function handleSubmit(e: FormEvent) {
@@ -65,14 +65,14 @@ export default function MultiplicationConfigPanel({
       onStart({ 
         targets: [4], 
         maxRange: sanitizeRange(maxRange),
-        totalProblems: sanitizeCount(totalProblems)
+        totalProblems: sanitizeCount(totalProblemsInput)
       })
       return
     }
     onStart({ 
       targets, 
       maxRange: sanitizeRange(maxRange),
-      totalProblems: sanitizeCount(totalProblems)
+      totalProblems: sanitizeCount(totalProblemsInput)
     })
   }
 
@@ -118,14 +118,12 @@ export default function MultiplicationConfigPanel({
         <label className="text-sky-900 font-semibold text-lg" htmlFor="count">Number of problems</label>
         <input
           id="count"
-          type="number"
+          type="text"
           inputMode="numeric"
-          min={1}
-          max={50}
           placeholder="10"
           className="w-full rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-3xl focus:outline-none focus:ring-4 focus:ring-emerald-200"
-          value={totalProblems}
-          onChange={(e) => setTotalProblems(Number(e.target.value))}
+          value={totalProblemsInput}
+          onChange={(e) => setTotalProblemsInput(e.target.value.replace(/[^0-9]/g, ''))}
         />
       </div>
 

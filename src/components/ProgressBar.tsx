@@ -8,7 +8,7 @@ export default function ProgressBar({
   activeIndex: number
 }) {
   return (
-    <div className="flex items-center justify-center gap-2 pt-2">
+    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
       {results.map((r, i) => (
         <span
           key={i}

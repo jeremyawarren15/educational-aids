@@ -56,7 +56,7 @@ export default function AdditionPage() {
     
     // If both params are present and valid, auto-start the game
     if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.totalProblems) {
-      const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+      const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
       if (totalProblems > 0) {
         const validConfig = { targets: urlConfig.targets, totalProblems }
         setConfig(validConfig)
@@ -71,7 +71,7 @@ export default function AdditionPage() {
       setInitialConfig(urlConfig)
       
       if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.totalProblems) {
-        const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
+        const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
         if (totalProblems > 0) {
           const validConfig = { targets: urlConfig.targets, totalProblems }
           setConfig(validConfig)
