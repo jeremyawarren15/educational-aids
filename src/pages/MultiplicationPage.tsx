@@ -26,6 +26,7 @@ function getConfigFromURL(): Partial<MultiplicationConfigValues> {
   const targets = params.get('targets')
   const maxRange = params.get('maxRange')
   const totalProblems = params.get('totalProblems')
+  const enableStopwatch = params.get('enableStopwatch')
   
   const parsedTargets = parseTargets(targets)
   
@@ -33,6 +34,7 @@ function getConfigFromURL(): Partial<MultiplicationConfigValues> {
     targets: parsedTargets && parsedTargets.length > 0 ? parsedTargets : undefined,
     maxRange: maxRange ? Number(maxRange) : undefined,
     totalProblems: totalProblems ? Number(totalProblems) : undefined,
+    enableStopwatch: enableStopwatch === 'true' ? true : enableStopwatch === 'false' ? false : undefined,
   }
 }
 
@@ -41,6 +43,9 @@ function updateURL(config: MultiplicationConfigValues) {
   params.set('targets', formatTargetsForURL(config.targets))
   params.set('maxRange', String(config.maxRange))
   params.set('totalProblems', String(config.totalProblems))
+  if (config.enableStopwatch) {
+    params.set('enableStopwatch', 'true')
+  }
   const newURL = `${window.location.pathname}?${params.toString()}`
   window.history.pushState({}, '', newURL)
 }
@@ -50,6 +55,7 @@ export default function MultiplicationPage() {
   const [mode, setMode] = useState<Mode>('config')
   const [config, setConfig] = useState<MultiplicationConfigValues | null>(null)
   const [results, setResults] = useState<Result[] | null>(null)
+  const [elapsedTime, setElapsedTime] = useState<number | undefined>(undefined)
   const [initialConfig, setInitialConfig] = useState<Partial<MultiplicationConfigValues>>(() => getConfigFromURL())
 
   useEffect(() => {
@@ -62,7 +68,7 @@ export default function MultiplicationPage() {
       const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
       const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
       if (maxRange >= 0 && totalProblems > 0) {
-        const validConfig = { targets: urlConfig.targets, maxRange, totalProblems }
+        const validConfig = { targets: urlConfig.targets, maxRange, totalProblems, enableStopwatch: urlConfig.enableStopwatch }
         setConfig(validConfig)
         setMode('play')
         setResults(null)
@@ -78,7 +84,7 @@ export default function MultiplicationPage() {
         const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
         const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
         if (maxRange >= 0 && totalProblems > 0) {
-          const validConfig = { targets: urlConfig.targets, maxRange, totalProblems }
+          const validConfig = { targets: urlConfig.targets, maxRange, totalProblems, enableStopwatch: urlConfig.enableStopwatch }
           setConfig(validConfig)
           setMode('play')
           setResults(null)
@@ -94,10 +100,21 @@ export default function MultiplicationPage() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
+  function formatTime(ms: number): string {
+    const seconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`
+    }
+    return `${seconds}s`
+  }
+
   function handleStart(c: MultiplicationConfigValues) {
     setConfig(c)
     setMode('play')
     setResults(null)
+    setElapsedTime(undefined)
     updateURL(c)
   }
 
@@ -121,8 +138,8 @@ export default function MultiplicationPage() {
                 </button>
                 <MultiplicationConfigPanel 
                   initial={initialConfig.targets && initialConfig.targets.length > 0 && initialConfig.maxRange !== undefined && initialConfig.totalProblems !== undefined
-                    ? { targets: initialConfig.targets, maxRange: initialConfig.maxRange, totalProblems: initialConfig.totalProblems }
-                    : { targets: [4], maxRange: 12, totalProblems: 10 }
+                    ? { targets: initialConfig.targets, maxRange: initialConfig.maxRange, totalProblems: initialConfig.totalProblems, enableStopwatch: initialConfig.enableStopwatch }
+                    : { targets: [4], maxRange: 12, totalProblems: 10, enableStopwatch: initialConfig.enableStopwatch }
                   } 
                   onStart={handleStart} 
                 />
@@ -133,8 +150,10 @@ export default function MultiplicationPage() {
                 targets={config.targets}
                 maxRange={config.maxRange}
                 totalProblems={config.totalProblems}
-                onDone={(r) => {
+                enableStopwatch={config.enableStopwatch}
+                onDone={(r, time) => {
                   setResults(r)
+                  setElapsedTime(time)
                   setMode('done')
                 }}
                 onHome={() => navigate('/')}
@@ -144,10 +163,15 @@ export default function MultiplicationPage() {
             {mode === 'done' && results && (
               <div className="grid gap-6 text-center">
                 <div className="text-2xl md:text-3xl font-extrabold text-emerald-800">Great job!</div>
-                <div className="flex items-center justify-center">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <div className="rounded-2xl bg-green-50 border border-green-200 text-green-700 px-6 py-4 text-xl font-bold">
                     Correct: {results.filter((r) => r === 'correct').length}
                   </div>
+                  {elapsedTime !== undefined && (
+                    <div className="rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 px-6 py-4 text-xl font-bold">
+                      Time: {formatTime(elapsedTime)}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button

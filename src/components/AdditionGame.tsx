@@ -8,12 +8,14 @@ export default function AdditionGame({
   onDone,
   onHome,
   onSettings,
+  enableStopwatch,
 }: {
   targets: number[]
   totalProblems: number
-  onDone: (results: Result[]) => void
+  onDone: (results: Result[], elapsedTime?: number) => void
   onHome?: () => void
   onSettings?: () => void
+  enableStopwatch?: boolean
 }) {
   const problems = useMemo<Problem[]>(
     () => generateAdditionProblems(targets, totalProblems),
@@ -40,6 +42,7 @@ export default function AdditionGame({
       onDone={onDone}
       onHome={onHome}
       onSettings={onSettings}
+      enableStopwatch={enableStopwatch}
     />
   )
 }

@@ -5,6 +5,7 @@ export type MultiplicationConfigValues = {
   targets: number[]
   maxRange: number
   totalProblems: number
+  enableStopwatch?: boolean
 }
 
 function parseTargets(input: string): number[] {
@@ -37,6 +38,9 @@ export default function MultiplicationConfigPanel({
   const [totalProblemsInput, setTotalProblemsInput] = useState<string>(
     initial?.totalProblems ? String(initial.totalProblems) : '10',
   )
+  const [enableStopwatch, setEnableStopwatch] = useState<boolean>(
+    initial?.enableStopwatch ?? false,
+  )
 
   useEffect(() => {
     const targets = parseTargets(targetInput)
@@ -65,14 +69,16 @@ export default function MultiplicationConfigPanel({
       onStart({ 
         targets: [4], 
         maxRange: sanitizeRange(maxRange),
-        totalProblems: sanitizeCount(totalProblemsInput)
+        totalProblems: sanitizeCount(totalProblemsInput),
+        enableStopwatch
       })
       return
     }
     onStart({ 
       targets, 
       maxRange: sanitizeRange(maxRange),
-      totalProblems: sanitizeCount(totalProblemsInput)
+      totalProblems: sanitizeCount(totalProblemsInput),
+      enableStopwatch
     })
   }
 
@@ -125,6 +131,19 @@ export default function MultiplicationConfigPanel({
           value={totalProblemsInput}
           onChange={(e) => setTotalProblemsInput(e.target.value.replace(/[^0-9]/g, ''))}
         />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          id="stopwatch"
+          type="checkbox"
+          className="h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-2 focus:ring-emerald-300"
+          checked={enableStopwatch}
+          onChange={(e) => setEnableStopwatch(e.target.checked)}
+        />
+        <label className="text-sky-900 font-semibold text-lg cursor-pointer" htmlFor="stopwatch">
+          Enable stopwatch (show time at completion)
+        </label>
       </div>
 
       <button

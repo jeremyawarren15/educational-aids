@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 export type AdditionConfigValues = {
   targets: number[]
   totalProblems: number
+  enableStopwatch?: boolean
 }
 
 function parseTargets(input: string): number[] {
@@ -33,6 +34,9 @@ export default function AdditionConfigPanel({
   const [totalProblemsInput, setTotalProblemsInput] = useState<string>(
     initial?.totalProblems ? String(initial.totalProblems) : '10',
   )
+  const [enableStopwatch, setEnableStopwatch] = useState<boolean>(
+    initial?.enableStopwatch ?? false,
+  )
 
   useEffect(() => {
     const targets = parseTargets(targetInput)
@@ -52,10 +56,10 @@ export default function AdditionConfigPanel({
     const targets = parseTargets(targetInput)
     if (targets.length === 0) {
       // Default to [10] if no valid targets
-      onStart({ targets: [10], totalProblems: sanitizeCount(totalProblemsInput) })
+      onStart({ targets: [10], totalProblems: sanitizeCount(totalProblemsInput), enableStopwatch })
       return
     }
-    onStart({ targets, totalProblems: sanitizeCount(totalProblemsInput) })
+    onStart({ targets, totalProblems: sanitizeCount(totalProblemsInput), enableStopwatch })
   }
 
   return (
@@ -90,6 +94,19 @@ export default function AdditionConfigPanel({
           value={totalProblemsInput}
           onChange={(e) => setTotalProblemsInput(e.target.value.replace(/[^0-9]/g, ''))}
         />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          id="stopwatch"
+          type="checkbox"
+          className="h-5 w-5 rounded border-sky-300 text-sky-600 focus:ring-2 focus:ring-sky-300"
+          checked={enableStopwatch}
+          onChange={(e) => setEnableStopwatch(e.target.checked)}
+        />
+        <label className="text-sky-900 font-semibold text-lg cursor-pointer" htmlFor="stopwatch">
+          Enable stopwatch (show time at completion)
+        </label>
       </div>
 
       <button

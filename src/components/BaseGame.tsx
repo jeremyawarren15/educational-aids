@@ -2,15 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { type Problem } from '../lib/problems'
 import ProgressBar from './ProgressBar'
 
-export type Result = 'pending' | 'correct' | 'wrong'
+export type Result = 'pending' | 'correct' | 'correct_after_wrong' | 'wrong'
 
 export type BaseGameProps = {
   problems: Problem[]
   totalProblems: number
   renderProblem: (problem: Problem) => React.ReactNode
-  onDone: (results: Result[]) => void
+  onDone: (results: Result[], elapsedTime?: number) => void
   onHome?: () => void
   onSettings?: () => void
+  enableStopwatch?: boolean
 }
 
 export default function BaseGame({
@@ -20,6 +21,7 @@ export default function BaseGame({
   onDone,
   onHome,
   onSettings,
+  enableStopwatch = false,
 }: BaseGameProps) {
   const [index, setIndex] = useState(0)
   const [input, setInput] = useState('')
@@ -28,10 +30,20 @@ export default function BaseGame({
   )
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [isShaking, setIsShaking] = useState(false)
+  const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [index])
+
+  useEffect(() => {
+    // Reset and start stopwatch when game begins (when problems change)
+    if (enableStopwatch && problems.length > 0) {
+      startTimeRef.current = Date.now()
+    } else {
+      startTimeRef.current = null
+    }
+  }, [enableStopwatch, problems])
 
   const current = problems[index]
 
@@ -54,16 +66,20 @@ export default function BaseGame({
     }
 
     // Correct answer: record final outcome for this problem
-    // Always mark as correct if they eventually get it right
+    // Mark as 'correct' if first try, 'correct_after_wrong' if they got it wrong first
     const nextResults = results.slice()
-    nextResults[index] = 'correct'
+    nextResults[index] = results[index] === 'wrong' ? 'correct_after_wrong' : 'correct'
     setResults(nextResults)
 
     if (index + 1 < problems.length) {
       setIndex(index + 1)
       setInput('')
     } else {
-      onDone(nextResults)
+      // Calculate elapsed time if stopwatch is enabled
+      const elapsedTime = enableStopwatch && startTimeRef.current !== null
+        ? Date.now() - startTimeRef.current
+        : undefined
+      onDone(nextResults, elapsedTime)
     }
   }
 

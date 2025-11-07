@@ -9,13 +9,15 @@ export default function MultiplicationGame({
   onDone,
   onHome,
   onSettings,
+  enableStopwatch,
 }: {
   targets: number[]
   maxRange: number
   totalProblems: number
-  onDone: (results: Result[]) => void
+  onDone: (results: Result[], elapsedTime?: number) => void
   onHome?: () => void
   onSettings?: () => void
+  enableStopwatch?: boolean
 }) {
   const problems = useMemo<Problem[]>(
     () => generateMultiplicationProblems(targets, maxRange, totalProblems),
@@ -42,6 +44,7 @@ export default function MultiplicationGame({
       onDone={onDone}
       onHome={onHome}
       onSettings={onSettings}
+      enableStopwatch={enableStopwatch}
     />
   )
 }

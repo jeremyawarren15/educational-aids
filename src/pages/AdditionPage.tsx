@@ -25,12 +25,14 @@ function getConfigFromURL(): Partial<AdditionConfigValues> {
   const params = new URLSearchParams(window.location.search)
   const targets = params.get('targets')
   const totalProblems = params.get('totalProblems')
+  const enableStopwatch = params.get('enableStopwatch')
   
   const parsedTargets = parseTargets(targets)
   
   return {
     targets: parsedTargets && parsedTargets.length > 0 ? parsedTargets : undefined,
     totalProblems: totalProblems ? Number(totalProblems) : undefined,
+    enableStopwatch: enableStopwatch === 'true' ? true : enableStopwatch === 'false' ? false : undefined,
   }
 }
 
@@ -38,6 +40,9 @@ function updateURL(config: AdditionConfigValues) {
   const params = new URLSearchParams()
   params.set('targets', formatTargetsForURL(config.targets))
   params.set('totalProblems', String(config.totalProblems))
+  if (config.enableStopwatch) {
+    params.set('enableStopwatch', 'true')
+  }
   const newURL = `${window.location.pathname}?${params.toString()}`
   window.history.pushState({}, '', newURL)
 }
@@ -47,6 +52,7 @@ export default function AdditionPage() {
   const [mode, setMode] = useState<Mode>('config')
   const [config, setConfig] = useState<AdditionConfigValues | null>(null)
   const [results, setResults] = useState<Result[] | null>(null)
+  const [elapsedTime, setElapsedTime] = useState<number | undefined>(undefined)
   const [initialConfig, setInitialConfig] = useState<Partial<AdditionConfigValues>>(() => getConfigFromURL())
 
   useEffect(() => {
@@ -58,7 +64,7 @@ export default function AdditionPage() {
     if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.totalProblems) {
       const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
       if (totalProblems > 0) {
-        const validConfig = { targets: urlConfig.targets, totalProblems }
+        const validConfig = { targets: urlConfig.targets, totalProblems, enableStopwatch: urlConfig.enableStopwatch }
         setConfig(validConfig)
         setMode('play')
         setResults(null)
@@ -73,7 +79,7 @@ export default function AdditionPage() {
       if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.totalProblems) {
         const totalProblems = Math.max(1, Math.round(urlConfig.totalProblems))
         if (totalProblems > 0) {
-          const validConfig = { targets: urlConfig.targets, totalProblems }
+          const validConfig = { targets: urlConfig.targets, totalProblems, enableStopwatch: urlConfig.enableStopwatch }
           setConfig(validConfig)
           setMode('play')
           setResults(null)
@@ -89,10 +95,21 @@ export default function AdditionPage() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
+  function formatTime(ms: number): string {
+    const seconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`
+    }
+    return `${seconds}s`
+  }
+
   function handleStart(c: AdditionConfigValues) {
     setConfig(c)
     setMode('play')
     setResults(null)
+    setElapsedTime(undefined)
     updateURL(c)
   }
 
@@ -116,8 +133,8 @@ export default function AdditionPage() {
                 </button>
                 <AdditionConfigPanel 
                   initial={initialConfig.targets && initialConfig.targets.length > 0 && initialConfig.totalProblems 
-                    ? { targets: initialConfig.targets, totalProblems: initialConfig.totalProblems }
-                    : { targets: [10], totalProblems: 10 }
+                    ? { targets: initialConfig.targets, totalProblems: initialConfig.totalProblems, enableStopwatch: initialConfig.enableStopwatch }
+                    : { targets: [10], totalProblems: 10, enableStopwatch: initialConfig.enableStopwatch }
                   } 
                   onStart={handleStart} 
                 />
@@ -127,8 +144,10 @@ export default function AdditionPage() {
               <AdditionGame
                 targets={config.targets}
                 totalProblems={config.totalProblems}
-                onDone={(r) => {
+                enableStopwatch={config.enableStopwatch}
+                onDone={(r, time) => {
                   setResults(r)
+                  setElapsedTime(time)
                   setMode('done')
                 }}
                 onHome={() => navigate('/')}
@@ -138,10 +157,15 @@ export default function AdditionPage() {
             {mode === 'done' && results && (
               <div className="grid gap-6 text-center">
                 <div className="text-2xl md:text-3xl font-extrabold text-sky-800">Great job!</div>
-                <div className="flex items-center justify-center">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <div className="rounded-2xl bg-green-50 border border-green-200 text-green-700 px-6 py-4 text-xl font-bold">
                     Correct: {results.filter((r) => r === 'correct').length}
                   </div>
+                  {elapsedTime !== undefined && (
+                    <div className="rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 px-6 py-4 text-xl font-bold">
+                      Time: {formatTime(elapsedTime)}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
