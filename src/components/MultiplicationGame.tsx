@@ -3,14 +3,14 @@ import { generateMultiplicationProblems, type Problem } from '../lib/problems'
 import BaseGame, { type Result } from './BaseGame'
 
 export default function MultiplicationGame({
-  target,
+  targets,
   maxRange,
   totalProblems,
   onDone,
   onHome,
   onSettings,
 }: {
-  target: number
+  targets: number[]
   maxRange: number
   totalProblems: number
   onDone: (results: Result[]) => void
@@ -18,14 +18,14 @@ export default function MultiplicationGame({
   onSettings?: () => void
 }) {
   const problems = useMemo<Problem[]>(
-    () => generateMultiplicationProblems(target, maxRange, totalProblems),
-    [target, maxRange, totalProblems],
+    () => generateMultiplicationProblems(targets, maxRange, totalProblems),
+    [targets, maxRange, totalProblems],
   )
 
-  function renderProblem(problem: Problem, target: number) {
+  function renderProblem(problem: Problem) {
     return (
       <>
-        <span>{target}</span>
+        <span>{problem.target}</span>
         <span className="text-sky-600"> × </span>
         <span>{problem.a}</span>
         <span className="text-sky-600"> = </span>
@@ -37,7 +37,6 @@ export default function MultiplicationGame({
   return (
     <BaseGame
       problems={problems}
-      target={target}
       totalProblems={totalProblems}
       renderProblem={renderProblem}
       onDone={onDone}

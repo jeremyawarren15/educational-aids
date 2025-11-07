@@ -6,14 +6,31 @@ import { type Result } from '../components/BaseGame'
 
 type Mode = 'config' | 'play' | 'done'
 
+function parseTargets(input: string | null): number[] | undefined {
+  if (!input) return undefined
+  return input
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => Number(s))
+    .filter((n) => Number.isFinite(n) && n >= 1)
+    .map((n) => Math.round(n))
+}
+
+function formatTargetsForURL(targets: number[]): string {
+  return targets.join(',')
+}
+
 function getConfigFromURL(): Partial<MultiplicationConfigValues> {
   const params = new URLSearchParams(window.location.search)
-  const target = params.get('target')
+  const targets = params.get('targets')
   const maxRange = params.get('maxRange')
   const totalProblems = params.get('totalProblems')
   
+  const parsedTargets = parseTargets(targets)
+  
   return {
-    target: target ? Number(target) : undefined,
+    targets: parsedTargets && parsedTargets.length > 0 ? parsedTargets : undefined,
     maxRange: maxRange ? Number(maxRange) : undefined,
     totalProblems: totalProblems ? Number(totalProblems) : undefined,
   }
@@ -21,7 +38,7 @@ function getConfigFromURL(): Partial<MultiplicationConfigValues> {
 
 function updateURL(config: MultiplicationConfigValues) {
   const params = new URLSearchParams()
-  params.set('target', String(config.target))
+  params.set('targets', formatTargetsForURL(config.targets))
   params.set('maxRange', String(config.maxRange))
   params.set('totalProblems', String(config.totalProblems))
   const newURL = `${window.location.pathname}?${params.toString()}`
@@ -41,12 +58,11 @@ export default function MultiplicationPage() {
     setInitialConfig(urlConfig)
     
     // If all params are present and valid, auto-start the game
-    if (urlConfig.target !== undefined && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
-      const target = Math.max(1, Math.round(urlConfig.target))
+    if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
       const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
       const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
-      if (target > 0 && maxRange >= 0 && totalProblems > 0) {
-        const validConfig = { target, maxRange, totalProblems }
+      if (maxRange >= 0 && totalProblems > 0) {
+        const validConfig = { targets: urlConfig.targets, maxRange, totalProblems }
         setConfig(validConfig)
         setMode('play')
         setResults(null)
@@ -58,12 +74,11 @@ export default function MultiplicationPage() {
       const urlConfig = getConfigFromURL()
       setInitialConfig(urlConfig)
       
-      if (urlConfig.target !== undefined && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
-        const target = Math.max(1, Math.round(urlConfig.target))
+      if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.maxRange !== undefined && urlConfig.totalProblems !== undefined) {
         const maxRange = Math.max(0, Math.round(urlConfig.maxRange))
         const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
-        if (target > 0 && maxRange >= 0 && totalProblems > 0) {
-          const validConfig = { target, maxRange, totalProblems }
+        if (maxRange >= 0 && totalProblems > 0) {
+          const validConfig = { targets: urlConfig.targets, maxRange, totalProblems }
           setConfig(validConfig)
           setMode('play')
           setResults(null)
@@ -105,9 +120,9 @@ export default function MultiplicationPage() {
                   ← Back
                 </button>
                 <MultiplicationConfigPanel 
-                  initial={initialConfig.target !== undefined && initialConfig.maxRange !== undefined && initialConfig.totalProblems !== undefined
-                    ? { target: initialConfig.target, maxRange: initialConfig.maxRange, totalProblems: initialConfig.totalProblems }
-                    : { target: 4, maxRange: 12, totalProblems: 10 }
+                  initial={initialConfig.targets && initialConfig.targets.length > 0 && initialConfig.maxRange !== undefined && initialConfig.totalProblems !== undefined
+                    ? { targets: initialConfig.targets, maxRange: initialConfig.maxRange, totalProblems: initialConfig.totalProblems }
+                    : { targets: [4], maxRange: 12, totalProblems: 10 }
                   } 
                   onStart={handleStart} 
                 />
@@ -115,7 +130,7 @@ export default function MultiplicationPage() {
             )}
             {mode === 'play' && config && (
               <MultiplicationGame
-                target={config.target}
+                targets={config.targets}
                 maxRange={config.maxRange}
                 totalProblems={config.totalProblems}
                 onDone={(r) => {

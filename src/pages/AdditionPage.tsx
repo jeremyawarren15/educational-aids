@@ -6,20 +6,37 @@ import { type Result } from '../components/BaseGame'
 
 type Mode = 'config' | 'play' | 'done'
 
+function parseTargets(input: string | null): number[] | undefined {
+  if (!input) return undefined
+  return input
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => Number(s))
+    .filter((n) => Number.isFinite(n) && n >= 1)
+    .map((n) => Math.round(n))
+}
+
+function formatTargetsForURL(targets: number[]): string {
+  return targets.join(',')
+}
+
 function getConfigFromURL(): Partial<AdditionConfigValues> {
   const params = new URLSearchParams(window.location.search)
-  const target = params.get('target')
+  const targets = params.get('targets')
   const totalProblems = params.get('totalProblems')
   
+  const parsedTargets = parseTargets(targets)
+  
   return {
-    target: target ? Number(target) : undefined,
+    targets: parsedTargets && parsedTargets.length > 0 ? parsedTargets : undefined,
     totalProblems: totalProblems ? Number(totalProblems) : undefined,
   }
 }
 
 function updateURL(config: AdditionConfigValues) {
   const params = new URLSearchParams()
-  params.set('target', String(config.target))
+  params.set('targets', formatTargetsForURL(config.targets))
   params.set('totalProblems', String(config.totalProblems))
   const newURL = `${window.location.pathname}?${params.toString()}`
   window.history.pushState({}, '', newURL)
@@ -38,11 +55,10 @@ export default function AdditionPage() {
     setInitialConfig(urlConfig)
     
     // If both params are present and valid, auto-start the game
-    if (urlConfig.target && urlConfig.totalProblems) {
-      const target = Math.max(1, Math.round(urlConfig.target))
+    if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.totalProblems) {
       const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
-      if (target > 0 && totalProblems > 0) {
-        const validConfig = { target, totalProblems }
+      if (totalProblems > 0) {
+        const validConfig = { targets: urlConfig.targets, totalProblems }
         setConfig(validConfig)
         setMode('play')
         setResults(null)
@@ -54,11 +70,10 @@ export default function AdditionPage() {
       const urlConfig = getConfigFromURL()
       setInitialConfig(urlConfig)
       
-      if (urlConfig.target && urlConfig.totalProblems) {
-        const target = Math.max(1, Math.round(urlConfig.target))
+      if (urlConfig.targets && urlConfig.targets.length > 0 && urlConfig.totalProblems) {
         const totalProblems = Math.min(50, Math.max(1, Math.round(urlConfig.totalProblems)))
-        if (target > 0 && totalProblems > 0) {
-          const validConfig = { target, totalProblems }
+        if (totalProblems > 0) {
+          const validConfig = { targets: urlConfig.targets, totalProblems }
           setConfig(validConfig)
           setMode('play')
           setResults(null)
@@ -100,9 +115,9 @@ export default function AdditionPage() {
                   ← Back
                 </button>
                 <AdditionConfigPanel 
-                  initial={initialConfig.target && initialConfig.totalProblems 
-                    ? { target: initialConfig.target, totalProblems: initialConfig.totalProblems }
-                    : { target: 10, totalProblems: 10 }
+                  initial={initialConfig.targets && initialConfig.targets.length > 0 && initialConfig.totalProblems 
+                    ? { targets: initialConfig.targets, totalProblems: initialConfig.totalProblems }
+                    : { targets: [10], totalProblems: 10 }
                   } 
                   onStart={handleStart} 
                 />
@@ -110,7 +125,7 @@ export default function AdditionPage() {
             )}
             {mode === 'play' && config && (
               <AdditionGame
-                target={config.target}
+                targets={config.targets}
                 totalProblems={config.totalProblems}
                 onDone={(r) => {
                   setResults(r)

@@ -6,9 +6,8 @@ export type Result = 'pending' | 'correct' | 'wrong'
 
 export type BaseGameProps = {
   problems: Problem[]
-  target: number
   totalProblems: number
-  renderProblem: (problem: Problem, target: number) => React.ReactNode
+  renderProblem: (problem: Problem) => React.ReactNode
   onDone: (results: Result[]) => void
   onHome?: () => void
   onSettings?: () => void
@@ -16,7 +15,6 @@ export type BaseGameProps = {
 
 export default function BaseGame({
   problems,
-  target,
   totalProblems,
   renderProblem,
   onDone,
@@ -116,7 +114,7 @@ export default function BaseGame({
       <div className="text-center bg-sky-50 rounded-3xl border border-sky-100 p-8">
         <div className="text-lg text-sky-700">Type your answer and press Enter</div>
         <div className="mt-3 font-extrabold text-6xl md:text-7xl tracking-tight">
-          {renderProblem(current, target)}
+          {renderProblem(current)}
         </div>
       </div>
 

@@ -3,31 +3,31 @@ import { generateAdditionProblems, type Problem } from '../lib/problems'
 import BaseGame, { type Result } from './BaseGame'
 
 export default function AdditionGame({
-  target,
+  targets,
   totalProblems,
   onDone,
   onHome,
   onSettings,
 }: {
-  target: number
+  targets: number[]
   totalProblems: number
   onDone: (results: Result[]) => void
   onHome?: () => void
   onSettings?: () => void
 }) {
   const problems = useMemo<Problem[]>(
-    () => generateAdditionProblems(target, totalProblems),
-    [target, totalProblems],
+    () => generateAdditionProblems(targets, totalProblems),
+    [targets, totalProblems],
   )
 
-  function renderProblem(problem: Problem, target: number) {
+  function renderProblem(problem: Problem) {
     return (
       <>
         <span>{problem.a}</span>
         <span className="text-sky-600"> + </span>
         <span className="text-sky-400">_</span>
         <span className="text-sky-600"> = </span>
-        <span>{target}</span>
+        <span>{problem.target}</span>
       </>
     )
   }
@@ -35,7 +35,6 @@ export default function AdditionGame({
   return (
     <BaseGame
       problems={problems}
-      target={target}
       totalProblems={totalProblems}
       renderProblem={renderProblem}
       onDone={onDone}
